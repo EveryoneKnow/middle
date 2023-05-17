@@ -7,55 +7,91 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-        
-        #container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin-top: 50px;
-        }
-        
-        #query {
-            margin-bottom: 20px;
-        }
-        
-        #submit {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin-bottom: 20px;
-        }
-        
-        #chart-container {
-            margin-right: 40px;
-        }
-    </style>
+      body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 0;
+      }
+      
+      #container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          margin-top: 50px;
+      }
+      
+      #query {
+          margin-bottom: 20px;
+      }
+      
+      #submit {
+          background-color: #4CAF50;
+          color: white;
+          border: none;
+          padding: 10px 20px;
+          text-align: center;
+          text-decoration: none;
+          display: inline-block;
+          font-size: 16px;
+          margin-bottom: 20px;
+      }
+
+      #verify {
+        background-color: #77cdfc;
+        color: #2f2f2f;
+        border: none;
+        padding: 10px 20px;
+      }
+
+      #submit:disabled {
+        background-color: #ddd;
+        color: #888;
+        cursor: not-allowed;
+      }
+      
+      #chart-container {
+          margin-right: 40px;
+      }
+  </style>
 </head>
 <body>
     <div id="container">
-        <textarea id="query" rows="5" cols="50" placeholder="data"></textarea>
-        <button id="submit">Submit</button>
+        <input type="password" id="doorkey" placeholder=" Enter doorkey here...">
+        <br>
+        <button id="verify">Verify</button>
+        <br>
+        <textarea id="query" rows="5" cols="50" placeholder=" Enter Data here..." disabled></textarea>
+        <button id="submit" disabled>Submit</button>
         <div id="chart-container">
-            <canvas id="chart" height="160px"></canvas>
+            <canvas id="chart" height="240px"></canvas>
         </div>
     </div>
 
     <script>
+        let isVerified = false;
+
+        $("#verify").click(function() {
+            const doorkey = $("#doorkey").val();
+            $.post("/verify_doorkey", {doorkey: doorkey}, function(data) {
+                if (data === "verified") {
+                    isVerified = true;
+                    $("#query").prop("disabled", false);
+                    $("#submit").prop("disabled", false);
+                } else {
+                    alert("Invalid door key");
+                }
+            });
+        });
+
         $("#submit").click(function() {
+            if (!isVerified) {
+                $("#submit").remove();
+                return;
+            }
             let query = $("#query").val();
             $.post("/get_answer", {query: query}, function(data) {
-                console.log(data)
+                console.log(data);
                 let answer = data;
                 eval(answer);
             });
